@@ -1,5 +1,5 @@
 name: GitHub Actions Demo
-run-name: ${{ github.action_status }} ${{ github.path }} ${{ github.job }} ${{ github.run_attempt }}
+run-name: ${{ github.event.workflow_run.workflow_id }} ${{ github.job }}
 on: [push]
 jobs:
   build:
@@ -16,6 +16,14 @@ jobs:
         run: npm install
       - name: Build Application
         run: npm run build
+      - name: Upload build and dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-and-dependencies
+          path: |
+            node_modules/
+            dist/
+
   test:
     needs: build
     runs-on: ubuntu-latest
@@ -27,7 +35,10 @@ jobs:
       with:
         node-version: 20.11.0
         cache: 'npm'
-    - name: Install dependencies
-      run: npm install
+    - name: Download build and dependencies
+      uses: actions/download-artifact@v4
+      with:
+        name: build-and-dependencies
+        path: ./
     - name: Run Tests
       run: npm run test
