@@ -9,9 +9,6 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - name: GH context dump
-        run: echo ${{ toJSON(github.event) }}
-        shell: bash
       - uses: actions/labeler@v5
         with:
           repo-token: '${{ github.token }}'
