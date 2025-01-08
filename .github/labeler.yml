@@ -1,6 +1,6 @@
 root:
     - changed-files:
           - any-glob-to-any-file: '*'
-AnyChange:
+workflows:
     - changed-files:
-          - any-glob-to-any-file: '**'
+          - any-glob-to-any-file: './github/workflows/*'
