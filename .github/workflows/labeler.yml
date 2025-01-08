@@ -1,7 +1,6 @@
 name: GitHub Actions Labeler
 run-name: ${{ github.event.workflow_run.workflow_id }} ${{ github.job }}
 on:
-  pull_request:
   workflow_run:
     workflows:
       - 'tests-ubuntu'
