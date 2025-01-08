@@ -32,6 +32,15 @@ jobs:
     if: ${{ success() }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/labeler@v5
-      with:
-        configuration-path: '.github/labeler.yml'
+      - name: Successfully Labels Apply
+        if: ${{ success() }}
+        uses: actions/labeler@v5
+        with:
+          configuration-path: '.github/success-labels.yml'
+      - name: Failure Labels Apply
+        if: ${{ failure() }}
+        uses: actions/labeler@v5
+        with:
+          configuration-path: '.github/failure-labels.yml'
+
+
