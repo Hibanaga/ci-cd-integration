@@ -8,6 +8,9 @@ jobs:
     steps:
       - id: label-PR
         uses: actions/labeler@v5
+        with:
+          repo-token: '${{ github.token }}'
+          sync-labels: true
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Set up Node.js
