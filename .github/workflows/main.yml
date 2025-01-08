@@ -30,14 +30,15 @@ jobs:
       pull-requests: write
     needs: tests-ubuntu
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     steps:
       - name: Successfully Labels Apply
-        if: ${{ success() }}
+        if: ${{ needs.tests-ubuntu.result == 'success' }}
         uses: actions/labeler@v5
         with:
           configuration-path: '.github/success-labels.yml'
       - name: Failure Labels Apply
-        if: ${{ failure() }}
+        if: ${{ needs.tests-ubuntu.result == 'failure' }}
         uses: actions/labeler@v5
         with:
           configuration-path: '.github/failure-labels.yml'
