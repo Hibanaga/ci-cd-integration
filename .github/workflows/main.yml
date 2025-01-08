@@ -18,22 +18,3 @@ jobs:
         run: npm run build
       - name: Run Tests
         run: npm run test
-  echo-development:
-    needs: tests-ubuntu
-    runs-on: ubuntu-latest
-    environment: development
-    steps:
-      - name: Display job folder
-        run: ls -la
-      - name: Display Environment
-        run: |
-          echo ${{ vars.APP_ENV }}
-      - name: Display URL
-        run: |
-          echo ${{ vars.APP_URL }}
-      - name: Display PORT
-        run: |
-          echo ${{ vars.APP_PORT }}
-      - name: Display URL with PORT
-        run: |
-          echo ${{ vars.APP_URL }}:${{ vars.APP_PORT }}
