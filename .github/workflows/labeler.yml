@@ -10,11 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/labeler@v5
-        with:
-          repo-token: '${{ github.token }}'
-          sync-labels: true
-          configuration-path: '.github/labeler.yml'
-          dot: true
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Set up Node.js
