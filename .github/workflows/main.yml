@@ -29,7 +29,6 @@ jobs:
       contents: read
       pull-requests: write
     needs: tests-ubuntu
-    if: ${{ success() }}
     runs-on: ubuntu-latest
     steps:
       - name: Successfully Labels Apply
