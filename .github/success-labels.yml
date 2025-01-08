@@ -3,5 +3,4 @@ To Deploy on STG:
           - any-glob-to-any-file: '*'
           - any-glob-to-any-file: '**'
 To Correct:
-  - changed-files:
-      - any-glob-to-any-file: './some-folder'
+   - changed-files:
