@@ -3,7 +3,7 @@ run-name: ${{ github.event.workflow_run.workflow_id }} ${{ github.job }}
 on:
   workflow_run:
     workflows:
-      - 'tests-ubuntu'
+      - main
     types:
       - completed
 
