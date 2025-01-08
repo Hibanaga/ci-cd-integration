@@ -18,37 +18,20 @@ jobs:
         run: npm run build
       - name: Run Tests
         run: npm run test
-  tests-macos:
+  echo-development:
     needs: tests-ubuntu
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+    environment: development
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.11.0
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Build Application
-        run: npm run build
-      - name: Run Tests
-        run: npm run test
-  tests-windows:
-    needs: tests-macos
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.11.0
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Build Application
-        run: npm run build
-      - name: Run Tests
-        run: npm run test
+      - name: Display Environment
+        run: |
+          echo ${{ vars.APP_ENV }}
+      - name: Display URL
+        run: |
+          echo ${{ vars.APP_URL }}
+      - name: Display PORT
+        run: |
+          echo ${{ vars.APP_PORT }}
+      - name: Display URL with PORT
+        run: |
+          echo ${{ vars.APP_URL }}:${{ vars.APP_PORT }}
