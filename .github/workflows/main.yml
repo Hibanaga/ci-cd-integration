@@ -6,6 +6,7 @@ run-name: ${{ github.event.workflow_run.workflow_id }} ${{ github.job }}
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   tests-ubuntu:
@@ -36,11 +37,9 @@ jobs:
         if: ${{ needs.tests-ubuntu.result == 'success' }}
         uses: actions/labeler@v5
         with:
-          sync-labels: true
           configuration-path: '.github/success-labels.yml'
       - name: Failure Labels Apply
         if: ${{ needs.tests-ubuntu.result == 'failure' }}
         uses: actions/labeler@v5
         with:
-          sync-labels: true
           configuration-path: '.github/failure-labels.yml'
