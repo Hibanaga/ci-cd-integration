@@ -2,7 +2,7 @@ name: GitHub Actions Demo
 run-name: ${{ github.event.workflow_run.workflow_id }} ${{ github.job }}
 on: [push]
 jobs:
-  build:
+  tests-ubuntu:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -16,19 +16,39 @@ jobs:
         run: npm install
       - name: Build Application
         run: npm run build
-
-  test:
-    needs: build
-    runs-on: ubuntu-latest
+      - name: Run Tests
+        run: npm run test
+  tests-macos:
+    needs: tests-ubuntu
+    runs-on: macos-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.11.0
-        cache: 'npm'
-    - name: Install dependencies
-      run: npm install
-    - name: Run Tests
-      run: npm run test
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.11.0
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Build Application
+        run: npm run build
+      - name: Run Tests
+        run: npm run test
+  tests-windows:
+    needs: tests-macos
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.11.0
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Build Application
+        run: npm run build
+      - name: Run Tests
+        run: npm run test
