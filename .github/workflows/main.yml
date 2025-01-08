@@ -25,6 +25,9 @@ jobs:
       - name: Run Tests
         run: npm run test
   labeler:
+    permissions:
+      contents: read
+      pull-requests: write
     needs: tests-ubuntu
     if: ${{ success() }}
     runs-on: ubuntu-latest
