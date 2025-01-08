@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     steps:
+      - name: Display job folder
+        run: ls -la
       - name: Display Environment
         run: |
           echo ${{ vars.APP_ENV }}
