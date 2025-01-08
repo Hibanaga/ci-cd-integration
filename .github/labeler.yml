@@ -1,6 +1,4 @@
-root:
-    - changed-files:
-          - any-glob-to-any-file: '*'
-workflows:
-    - changed-files:
-          - any-glob-to-any-file: './github/workflows/*'
+"To Deploy on STG":
+  - '**'
+  - '.*'
+  - '.*/**'
