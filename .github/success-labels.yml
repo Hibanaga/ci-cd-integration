@@ -1,14 +1,7 @@
-#To Deploy on STG:
-#    - changed-files:
-#          - any-glob-to-any-file: '*'
-#          - any-glob-to-any-file: '**'
-#To Correct:
-#  - changed-files:
-#      -
-
 To Deploy on STG:
-  - '*'
-  - '**'
-
+    - changed-files:
+          - any-glob-to-any-file: '*'
+          - any-glob-to-any-file: '**'
 To Correct:
-  - "./some-target"
+  - changed-files:
+      - any-glob-to-any-file: './some-folder'
