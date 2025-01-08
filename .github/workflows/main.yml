@@ -25,9 +25,3 @@ jobs:
         run: npm run build
       - name: Run Tests
         run: npm run test
-      - name: Add pipeline to labeler
-        if: ${{ success() }}
-        uses: actions/labeler@v5
-        with:
-          configuration-path: '.github/labeler.yml'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
