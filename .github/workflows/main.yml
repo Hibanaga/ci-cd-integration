@@ -19,7 +19,7 @@ jobs:
           node-version: 20.11.0
           cache: 'npm'
       - name: Install dependencies
-        run: npm install
+        run: npm install --frozen-lockfile
       - name: Build Application
         run: npm run build
       - name: Run Tests
