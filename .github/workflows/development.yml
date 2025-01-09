@@ -1,0 +1,27 @@
+name: Development CI
+
+run-name: ${{ github.event.workflow_run.workflow_id }} ${{ github.job }}
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Application
+        uses: ./.github/actions/build
+        with:
+          node-version: '20.11.0'
+      - name: Run Tests
+        uses: ./.github/actions/test
+      - name: Assign Labels
+        if: always()
+        uses: ./.github/actions/labels
+        with:
+          workflow-status: ${{ job.status }}

@@ -1,0 +1,28 @@
+name: Build Action
+
+inputs:
+  node-version:
+    description: The version of Node.js to use (e.g., 20.11.0).
+    required: true
+    type: string
+
+outputs:
+  build-status:
+    description: Status of the build process (success or failure).
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install --frozen-lockfile
+      shell: bash
+
+    - name: Build Application
+      run: npm run build
+      shell: bash
