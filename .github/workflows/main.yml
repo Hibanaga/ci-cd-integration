@@ -1,6 +1,13 @@
 name: GitHub Actions Demo
+
 run-name: ${{ github.event.workflow_run.workflow_id }} ${{ github.job }}
-on: [push]
+
+#on: [push]
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
 jobs:
   tests-ubuntu:
     runs-on: ubuntu-latest
@@ -13,27 +20,28 @@ jobs:
           node-version: 20.11.0
           cache: 'npm'
       - name: Install dependencies
-        run: npm install
+        run: npm install --frozen-lockfile
       - name: Build Application
         run: npm run build
       - name: Run Tests
         run: npm run test
-  echo-development:
+  labeler:
+    permissions:
+      contents: read
+      pull-requests: write
     needs: tests-ubuntu
     runs-on: ubuntu-latest
-    environment: development
+    if: ${{ always() }}
     steps:
-      - name: Display job folder
-        run: ls -la
-      - name: Display Environment
-        run: |
-          echo ${{ vars.APP_ENV }}
-      - name: Display URL
-        run: |
-          echo ${{ vars.APP_URL }}
-      - name: Display PORT
-        run: |
-          echo ${{ vars.APP_PORT }}
-      - name: Display URL with PORT
-        run: |
-          echo ${{ vars.APP_URL }}:${{ vars.APP_PORT }}
+      - name: Successfully Labels Apply
+        if: ${{ needs.tests-ubuntu.result == 'success' }}
+        uses: actions/labeler@v5
+        with:
+          configuration-path: '.github/success-labels.yml'
+          sync-labels: true
+      - name: Failure Labels Apply
+        if: ${{ needs.tests-ubuntu.result == 'failure' }}
+        uses: actions/labeler@v5
+        with:
+          configuration-path: '.github/failure-labels.yml'
+          sync-labels: true
