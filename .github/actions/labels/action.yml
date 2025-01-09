@@ -1,0 +1,22 @@
+name: Label Assign Action
+
+inputs:
+  workflow-status:
+    description: The result of previous step execution
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Assign success label
+      if: ${{ inputs.workflow-status == 'success' }}
+      uses: actions/labeler@v5
+      with:
+        configuration-path: '.github/labels-groups/success.yml'
+        sync-labels: true
+    - name: Assign failure label
+      if: ${{ inputs.workflow-status == 'failure' }}
+      uses: actions/labeler@v5
+      with:
+        configuration-path: '.github/labels-groups/failure.yml'
+        sync-labels: true

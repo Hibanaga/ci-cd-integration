@@ -1,0 +1,12 @@
+name: Test Assign Action
+
+outputs:
+  test-status:
+    description: Status of the tests process (success or failure).
+
+runs:
+  using: composite
+  steps:
+    - name: Test Application
+      run: npm run test
+      shell: bash
