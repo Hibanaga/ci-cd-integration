@@ -2,7 +2,14 @@ name: Development CI
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  pull_request_review:
+    types:
+      - submitted
 
 jobs:
   build-test:
@@ -13,10 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build Application
+        if: github.event_name == 'pull_request'
         uses: ./.github/actions/build
         with:
           node-version: '20.11.0'
       - name: Run Tests
+        if: github.event_name == 'pull_request'
         uses: ./.github/actions/test
       - name: Assign Labels
         if: always()
@@ -24,3 +33,4 @@ jobs:
         with:
           workflow-status: ${{ job.status }}
           drafted: ${{ github.event.pull_request.draft }}
+          event_name: ${{ github.event_name }}
