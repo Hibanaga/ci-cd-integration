@@ -11,22 +11,21 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Determine label configuration path
-      id: determine-label
-      shell: bash
-      run: |
-        if [[ "${{ inputs.drafted }}" == "true" ]]; then
-          echo "label_config=.github/labels-groups/progress.yml" >> $GITHUB_ENV
-        elif [[ "${{ inputs.workflow-status }}" == "success" ]]; then
-          echo "label_config=.github/labels-groups/success.yml" >> $GITHUB_ENV
-        elif [[ "${{ inputs.workflow-status }}" == "failure" ]]; then
-          echo "label_config=.github/labels-groups/failure.yml" >> $GITHUB_ENV
-        else
-          echo "No applicable label configuration found."
-          exit 1
-    - name: Assign appropriate label
-      if: ${{ env.label_config }}
+    - name: Assign progress label
+      if: ${{ inputs.drafted == 'true' }}
       uses: actions/labeler@v5
       with:
-        configuration-path: ${{ env.label_config }}
+        configuration-path: '.github/labels-groups/progress.yml'
+        sync-labels: true
+    - name: Assign success label
+      if: ${{ inputs.drafted == 'false' && inputs.workflow-status == 'success' }}
+      uses: actions/labeler@v5
+      with:
+        configuration-path: '.github/labels-groups/success.yml'
+        sync-labels: true
+    - name: Assign failure label
+      if: ${{ inputs.drafted == 'false' && inputs.workflow-status == 'failure' }}
+      uses: actions/labeler@v5
+      with:
+        configuration-path: '.github/labels-groups/failure.yml'
         sync-labels: true
