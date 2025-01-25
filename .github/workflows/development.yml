@@ -1,6 +1,6 @@
 name: Development CI
 
-run-name: ${{ github.event.workflow_run.workflow_id }} ${{ github.job }}
+run-name: "${{ github.event_name }}: ${{ github.ref_name }} (${ github.job }) by ${{ github.actor }}"
 
 on:
   pull_request:
