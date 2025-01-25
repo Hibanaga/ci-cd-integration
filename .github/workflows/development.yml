@@ -25,3 +25,4 @@ jobs:
         uses: ./.github/actions/labels
         with:
           workflow-status: ${{ job.status }}
+          drafted: ${{ github.event.pull_request.draft }}
