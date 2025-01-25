@@ -24,6 +24,8 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - name: Sleep for 120 seconds
+        run: sleep 120
       - uses: actions/checkout@v4
       - name: Build Application
         if: github.event_name == 'pull_request'
