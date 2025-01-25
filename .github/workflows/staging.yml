@@ -5,12 +5,20 @@ on:
     branches:
       - staging
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Log push on staging
-        run: echo "Hello staging"
+      - name: Build Application
+        uses: ./.github/actions/build
+        with:
+          node-version: '20.11.0'
+      - name: Run Tests
+        uses: ./.github/actions/test
 
 
