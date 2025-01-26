@@ -9,5 +9,5 @@ CR:
 Master:
   - changed-files:
 Staging:
-  - all:
-    - base-branch: 'main'
+  conditions:
+    - base-branch: 'staging'
