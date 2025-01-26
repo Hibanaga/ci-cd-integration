@@ -25,9 +25,11 @@ runs:
       id: set-config-path
       shell: bash
       run: |
+        changed_files=$(git diff --name-only HEAD~1 HEAD)
+        
         if [[ "${{ inputs.drafted }}" == "true" && "${{ inputs.event_name }}" == "pull_request" ]]; then
           echo "path=.github/labels-groups/progress.yml" >> $GITHUB_ENV
-        elif [[ "${{ inputs.ref }}" == "refs/heads/staging" ]]; then
+        elif [[ "${{ inputs.ref }}" == "refs/heads/staging" && -z "$changed_files" ]]; then
           echo "path=.github/labels-groups/staging.yml" >> $GITHUB_ENV
         elif [[ "${{ inputs.ref }}" == "refs/heads/master" ]]; then
           echo "path=.github/labels-groups/master.yml" >> $GITHUB_ENV
