@@ -9,6 +9,4 @@ CR:
 Master:
   - changed-files:
 Staging:
-  - changed-files:
-      - any-glob-to-any-file: '*'
-      - any-glob-to-any-file: '**'
+  - base-branch: 'staging'
