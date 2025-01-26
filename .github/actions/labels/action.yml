@@ -37,7 +37,6 @@ runs:
           echo "No matching conditions for label assignment."
           exit 1
         fi
-
     - name: Apply labels
       uses: actions/labeler@v5
       with:

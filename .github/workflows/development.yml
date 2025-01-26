@@ -15,7 +15,6 @@ on:
   push:
     branches:
       - staging
-      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
