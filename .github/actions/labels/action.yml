@@ -27,16 +27,16 @@ runs:
       run: |
         if [[ "${{ inputs.drafted }}" == "true" && "${{ inputs.event_name }}" == "pull_request" ]]; then
           echo "path=.github/labels-groups/progress.yml" >> $GITHUB_ENV
+        elif [[ "${{ inputs.ref }}" == "refs/heads/staging" ]]; then
+          echo "path=.github/labels-groups/staging.yml" >> $GITHUB_ENV
+        elif [[ "${{ inputs.ref }}" == "refs/heads/master" ]]; then
+          echo "path=.github/labels-groups/master.yml" >> $GITHUB_ENV
         elif [[ "${{ inputs.drafted }}" == "false" && "${{ inputs.workflow-status }}" == "success" && "${{ inputs.event_name }}" == "pull_request" ]]; then
           echo "path=.github/labels-groups/success.yml" >> $GITHUB_ENV
         elif [[ "${{ inputs.drafted }}" == "false" && "${{ inputs.workflow-status }}" == "failure" && "${{ inputs.event_name }}" == "pull_request" ]]; then
           echo "path=.github/labels-groups/failure.yml" >> $GITHUB_ENV
         elif [[ "${{ inputs.drafted }}" == "false" && "${{ inputs.event_name }}" == "pull_request_review" ]]; then
           echo "path=.github/labels-groups/ready-to-stage.yml" >> $GITHUB_ENV
-        elif [[ "${{ inputs.ref }}" == "refs/heads/staging" ]]; then
-          echo "path=.github/labels-groups/staging.yml" >> $GITHUB_ENV
-        elif [[ "${{ inputs.ref }}" == "refs/heads/master" ]]; then
-          echo "path=.github/labels-groups/master.yml" >> $GITHUB_ENV
         else
           echo "No matching conditions for label assignment."
           exit 1
