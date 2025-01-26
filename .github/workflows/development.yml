@@ -40,3 +40,4 @@ jobs:
           workflow-status: ${{ job.status }}
           drafted: ${{ github.event.pull_request.draft }}
           event_name: ${{ github.event_name }}
+          ref: ${{ github.ref }}
