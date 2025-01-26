@@ -17,57 +17,29 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Assign labels based on conditions
+    - name: Determine label configuration path
+      id: set-config-path
+      shell: bash
+      run: |
+        if [[ "${{ inputs.drafted }}" == "true" && "${{ inputs.event_name }}" == "pull_request" ]]; then
+          echo "path=.github/labels-groups/progress.yml" >> $GITHUB_ENV
+        elif [[ "${{ inputs.drafted }}" == "false" && "${{ inputs.workflow-status }}" == "success" && "${{ inputs.event_name }}" == "pull_request" ]]; then
+          echo "path=.github/labels-groups/success.yml" >> $GITHUB_ENV
+        elif [[ "${{ inputs.drafted }}" == "false" && "${{ inputs.workflow-status }}" == "failure" && "${{ inputs.event_name }}" == "pull_request" ]]; then
+          echo "path=.github/labels-groups/failure.yml" >> $GITHUB_ENV
+        elif [[ "${{ inputs.drafted }}" == "false" && "${{ inputs.event_name }}" == "pull_request_review" ]]; then
+          echo "path=.github/labels-groups/ready-to-stage.yml" >> $GITHUB_ENV
+        elif [[ "${{ inputs.ref }}" == "refs/heads/staging" ]]; then
+          echo "path=.github/labels-groups/staging.yml" >> $GITHUB_ENV
+        elif [[ "${{ inputs.ref }}" == "refs/heads/master" ]]; then
+          echo "path=.github/labels-groups/master.yml" >> $GITHUB_ENV
+        else
+          echo "No matching conditions for label assignment."
+          exit 1
+        fi
+
+    - name: Apply labels
       uses: actions/labeler@v5
       with:
-        configuration-path: ${{ steps.get-config.outputs.path }}
+        configuration-path: ${{ env.path }}
         sync-labels: true
-      id: get-config
-      run: |
-        echo "::set-output name=path::$(node -e '
-          const { drafted, workflowStatus, eventName, ref } = process.env;
-
-          let configPath = "";
-          if (drafted === "true" && eventName === "pull_request") {
-            configPath = ".github/labels-groups/progress.yml";
-          } else if (drafted === "false" && workflowStatus === "success" && eventName === "pull_request") {
-            configPath = ".github/labels-groups/success.yml";
-          } else if (drafted === "false" && workflowStatus === "failure" && eventName === "pull_request") {
-            configPath = ".github/labels-groups/failure.yml";
-          } else if (drafted === "false" && eventName === "pull_request_review") {
-            configPath = ".github/labels-groups/ready-to-stage.yml";
-          } else if (ref === "refs/heads/staging") {
-            configPath = ".github/labels-groups/staging.yml";
-          } else if (ref === "refs/heads/master") {
-            configPath = ".github/labels-groups/master.yml";
-          } else {
-            console.error("No matching conditions for label assignment");
-          }
-
-          console.log(configPath);
-          process.stdout.write(configPath);
-        ');
-#    - name: Assign progress label
-#      if: ${{ inputs.drafted == 'true' && inputs.event_name == 'pull_request' }}
-#      uses: actions/labeler@v5
-#      with:
-#        configuration-path: '.github/labels-groups/progress.yml'
-#        sync-labels: true
-#    - name: Assign success label
-#      if: ${{ inputs.drafted == 'false' && inputs.workflow-status == 'success' && inputs.event_name == 'pull_request' }}
-#      uses: actions/labeler@v5
-#      with:
-#        configuration-path: '.github/labels-groups/success.yml'
-#        sync-labels: true
-#    - name: Assign failure label
-#      if: ${{ inputs.drafted == 'false' && inputs.workflow-status == 'failure' && inputs.event_name == 'pull_request' }}
-#      uses: actions/labeler@v5
-#      with:
-#        configuration-path: '.github/labels-groups/failure.yml'
-#        sync-labels: true
-#    - name: Assign Ready to Stage label
-#      if: ${{ inputs.drafted == 'false' && inputs.event_name == 'pull_request_review' }}
-#      uses: actions/labeler@v5
-#      with:
-#        configuration-path: '.github/labels-groups/ready-to-stage.yml'
-#        sync-labels: true
