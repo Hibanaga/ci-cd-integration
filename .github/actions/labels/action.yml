@@ -20,7 +20,7 @@ runs:
     - name: Log ref
       shell: bash
       run: |
-        echo inputs.ref
+        echo "The value of ref is: ${{ inputs.ref }}"
     - name: Determine label configuration path
       id: set-config-path
       shell: bash
