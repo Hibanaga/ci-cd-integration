@@ -1,4 +1,4 @@
-name: Development CI
+name: Development
 
 on:
   pull_request:
@@ -12,6 +12,9 @@ on:
     types:
       - submitted
       - dismissed
+  push:
+    branches:
+      - staging
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
@@ -40,3 +43,4 @@ jobs:
           workflow-status: ${{ job.status }}
           drafted: ${{ github.event.pull_request.draft }}
           event_name: ${{ github.event_name }}
+          ref: ${{ github.ref }}

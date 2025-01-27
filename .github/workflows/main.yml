@@ -1,9 +1,9 @@
-name: Staging
+name: Master
 
 on:
   push:
     branches:
-      - staging
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
