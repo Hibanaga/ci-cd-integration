@@ -19,8 +19,6 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - name: Sleep for 75 seconds
-        run: sleep 75
       - uses: actions/checkout@v4
       - name: Build Application
         uses: ./.github/actions/build
