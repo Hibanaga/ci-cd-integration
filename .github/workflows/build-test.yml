@@ -21,7 +21,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Sleep for 2 minute
-        run: sleep 360
+        run: sleep 120
       - uses: actions/checkout@v4
       - name: Build Application
         uses: ./.github/actions/build
