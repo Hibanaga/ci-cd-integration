@@ -1,17 +1,20 @@
-name: Staging CI
+name: Build and Test
 
 on:
   push:
-    branches:
-      - staging
+    branches: [master, staging]
+  pull_request:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref }}
+  group: ${{github.workflow}}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  tests:
+  build-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - name: Build Application
@@ -20,5 +23,3 @@ jobs:
           node-version: '20.11.0'
       - name: Run Tests
         uses: ./.github/actions/test
-
-
