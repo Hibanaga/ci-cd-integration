@@ -20,6 +20,7 @@ jobs:
       - name: Audit URLs using Lighthouse
         id: lhci
         uses: treosh/lighthouse-ci-action@v12
+        continue-on-error: true
         with:
           urls: ${{ matrix.url }}
           runs: 1
@@ -27,14 +28,23 @@ jobs:
           configPath: ./.lighthouse/lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: false
+          artifactName: lighthouse-results
+
+      - name: Ensure jq is installed
+        if: always()
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y jq
+          fi
 
       - name: Summarize Lighthouse results (Markdown + CSV)
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
 
           REPORT_DIR=".lighthouseci"
-          # Fallback to action’s artifact dir if needed
           if [ ! -d "$REPORT_DIR" ]; then
             REPORT_DIR="$(pwd)"
           fi
@@ -46,22 +56,30 @@ jobs:
           fi
 
           if [ ${#REPORTS[@]} -eq 0 ]; then
-            echo "No Lighthouse JSON reports found." >&2
-            exit 1
+            echo "No Lighthouse JSON reports found in ${REPORT_DIR}" >&2
+            # still write a short note to summary
+            {
+              echo "### Lighthouse summary"
+              echo ""
+              echo "_No JSON reports found. Check LHCI action logs/artifact._"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
           fi
 
-          # Headers for Markdown + CSV
           MD_HEADER="| URL | Perf | A11y | Best-Practices | SEO | FCP (ms) | LCP (ms) | TBT (ms) | CLS | Speed Index (ms) | Interactive (ms) |"
           MD_SEP="|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
           CSV_HEADER="url,score_performance,score_accessibility,score_best_practices,score_seo,fcp_ms,lcp_ms,tbt_ms,cls,speed_index_ms,interactive_ms"
 
-          echo "$MD_HEADER" >> "$GITHUB_STEP_SUMMARY"
-          echo "$MD_SEP"    >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "### Lighthouse summary"
+            echo ""
+            echo "$MD_HEADER"
+            echo "$MD_SEP"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           echo "$CSV_HEADER" > lhci_table.csv
 
           for f in "${REPORTS[@]}"; do
-            # Pull fields; keep everything strictly from the files
             url=$(jq -r '.finalDisplayedUrl // .finalUrl // .requestedUrl' "$f")
 
             perf=$(jq '(.categories.performance.score // null) * 100 | if .==null then null else round end' "$f")
@@ -76,12 +94,10 @@ jobs:
             si=$(jq '."audits"."speed-index".numericValue // null | if .==null then null else round end' "$f")
             tti=$(jq '."audits"."interactive".numericValue // null | if .==null then null else round end' "$f")
 
-            # Fallbacks for nulls to keep table readable
             nn() { if [ "$1" = "null" ] || [ -z "${1}" ]; then echo "n/a"; else echo "$1"; fi; }
 
             echo "| ${url} | $(nn "$perf") | $(nn "$a11y") | $(nn "$bp") | $(nn "$seo") | $(nn "$fcp") | $(nn "$lcp") | $(nn "$tbt") | $(nn "$cls") | $(nn "$si") | $(nn "$tti") |" >> "$GITHUB_STEP_SUMMARY"
 
-            # CSV row (keep raw values; quote URL)
             printf '"%s",%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
               "$url" \
               "${perf:-}" "${a11y:-}" "${bp:-}" "${seo:-}" \
@@ -90,9 +106,10 @@ jobs:
           done
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "_Raw reports and CSV are attached as artifacts._" >> "$GITHUB_STEP_SUMMARY"
+          echo "_CSV and raw reports are attached as artifacts._" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload parsed CSV
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lhci-table
@@ -100,11 +117,18 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload Lighthouse reports
+      - name: Upload Lighthouse reports directory
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lighthouse-reports
+          name: lighthouse-reports-dir
           path: .lighthouseci
+          include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Fail if LHCI assertions failed
+        if: steps.lhci.outcome == 'failure'
+        run: |
+          echo "LHCI assertions failed; failing job after summary/artifacts."
+          exit 1
