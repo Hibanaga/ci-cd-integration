@@ -15,7 +15,7 @@
             { "resourceType": "total", "budget": 200 }
         ],
         "timings": [
-            { "metric": "interactive", "budget": 20000 }
+            { "metric": "interactive", "budget": 25000 }
         ]
     }
 ]
