@@ -26,6 +26,7 @@ jobs:
         uses: treosh/lighthouse-ci-action@v12
         env:
           LHCI_FORM_FACTOR: ${{ matrix.form_factor }}
+          LHCI_DEBUG: '1'
         with:
           urls: ${{ matrix.url }}
           runs: 1
