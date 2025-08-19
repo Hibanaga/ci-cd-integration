@@ -15,18 +15,95 @@ jobs:
                     - https://www.gazetkowo.pl
                 form_factor: [desktop, mobile]
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Audit URLs using Lighthouse
-              id: lhci
-              uses: treosh/lighthouse-ci-action@v12
-              env:
-                  LHCI_FORM_FACTOR: ${{ matrix.form_factor }}
-              with:
-                urls: ${{ matrix.url }}
-                runs: 1
-                budgetPath: ./.lighthouse/budget.json
-                configPath: ./.lighthouse/lighthouserc.cjs
-                uploadArtifacts: true
-                temporaryPublicStorage: false
+      - name: Create Lighthouse config and budget
+        run: |
+          mkdir -p .lighthouse
+          cat > .lighthouse/lighthouserc.cjs <<'EOF'
+          const FORM = process.env.LHCI_FORM_FACTOR === 'mobile' ? 'mobile' : 'desktop';
+          const PRESET = FORM;
+          module.exports = {
+            ci: {
+              collect: {
+                numberOfRuns: 3,
+                settings: {
+                  preset: PRESET,
+                  onlyCategories: ['performance','accessibility','best-practices','seo'],
+                  emulatedFormFactor: FORM,
+                  throttlingMethod: 'simulate',
+                  disableStorageReset: false,
+                },
+                chromeFlags: '--no-sandbox --disable-gpu',
+              },
+              assert: {
+                assertions: {
+                  'categories:performance':   ['error', { minScore: 0.90 }],
+                  'categories:accessibility': ['error', { minScore: 0.90 }],
+                  'categories:best-practices':['error', { minScore: 0.90 }],
+                  'categories:seo':           ['error', { minScore: 0.90 }],
+                  'largest-contentful-paint': ['error', { maxNumericValue: 2500, aggregationMethod: 'median' }],
+                  'total-blocking-time':      ['error', { maxNumericValue: 200,  aggregationMethod: 'median' }],
+                  'cumulative-layout-shift':  ['error', { maxNumericValue: 0.10, aggregationMethod: 'median' }],
+                  'first-contentful-paint':   ['warn',  { maxNumericValue: 1800, aggregationMethod: 'median' }],
+                  'speed-index':              ['warn',  { maxNumericValue: 3400, aggregationMethod: 'median' }],
+                  'performance-budget': ['error', { aggregationMethod: 'median' }],
+                  'timing-budget':      ['error', { aggregationMethod: 'median' }],
+                  'resource-summary':   ['warn'],
+                  'third-party-summary':['warn'],
+                  'unused-javascript':         'warn',
+                  'unused-css-rules':          'warn',
+                  'legacy-javascript':         'warn',
+                  'render-blocking-resources': 'warn',
+                  'offscreen-images':          'warn',
+                  'uses-responsive-images':    'warn',
+                  'uses-long-cache-ttl':       'warn',
+                  'no-document-write':         'error',
+                },
+                budgetsFile: './.lighthouse/budget.json',
+              },
+            },
+          };
+          EOF
+
+          # Optional: write budget.json here if it's not committed
+          cat > .lighthouse/budget.json <<'EOF'
+          [
+            {
+              "path": "/*",
+              "resourceSizes": [
+                { "resourceType": "document",   "budget": 100000 },
+                { "resourceType": "script",     "budget": 220000 },
+                { "resourceType": "stylesheet", "budget": 200000 },
+                { "resourceType": "image",      "budget": 70000 },
+                { "resourceType": "font",       "budget": 200000 },
+                { "resourceType": "media",      "budget": 0 },
+                { "resourceType": "other",      "budget": 200000 },
+                { "resourceType": "total",      "budget": 360000 }
+              ],
+              "resourceCounts": [
+                { "resourceType": "total", "budget": 100 }
+              ],
+              "timings": [
+                { "metric": "interactive", "budget": 20000 }
+              ]
+            }
+          ]
+          EOF
+
+          ls -la .lighthouse
+          node -e "console.log(require('./.lighthouse/lighthouserc.cjs') ? 'config ok' : 'no config')"
+
+      - name: Audit URLs using Lighthouse
+        id: lhci
+        uses: treosh/lighthouse-ci-action@v12
+        env:
+          LHCI_FORM_FACTOR: ${{ matrix.form_factor }}
+        with:
+          urls: ${{ matrix.url }}
+          runs: 1
+          budgetPath: ./.lighthouse/budget.json
+          configPath: ./.lighthouse/lighthouserc.cjs
+          uploadArtifacts: true
+          temporaryPublicStorage: false
