@@ -20,6 +20,7 @@ module.exports = {
       chromeFlags: '--no-sandbox --disable-gpu',
     },
     assert: {
+      preset: "lighthouse:recommended",
       assertions: {
         'categories:performance':     ['error', { minScore: 0.70 }],
         'categories:accessibility':   ['error', { minScore: 0.80 }],
@@ -31,20 +32,6 @@ module.exports = {
         'total-blocking-time':        ['error', { maxNumericValue: 300,  aggregationMethod: 'median' }],
         'cumulative-layout-shift':    ['error', { maxNumericValue: 0.10, aggregationMethod: 'median' }],
         'speed-index':                ['error', { maxNumericValue: 4300, aggregationMethod: 'median' }],
-
-        'performance-budget':         'error',
-
-        'unused-javascript':          'error',
-        'unused-css-rules':           'error',
-        'legacy-javascript':          'error',
-        'render-blocking-resources':  'error',
-        'offscreen-images':           'error',
-        'uses-responsive-images':     'error',
-        'uses-long-cache-ttl':        'error',
-        'no-document-write':          'error',
-
-        'lighthouse-run-warnings': 'error',
-        'runtime-error': 'error',
       },
       budgetsFile: './.lighthouse/budget.json',
     },

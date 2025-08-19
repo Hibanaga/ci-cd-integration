@@ -30,7 +30,7 @@ jobs:
           urls: ${{ matrix.url }}
           runs: 1
           budgetPath: ./.lighthouse/budget.json
-#          configPath: ./.lighthouse/lighthouserc.cjs
+          configPath: ./.lighthouse/lighthouserc.cjs
           uploadArtifacts: true
           temporaryPublicStorage: false
           artifactName: lighthouse-${{ matrix.form_factor }}-${{ github.run_id }}-${{ github.run_attempt }}
