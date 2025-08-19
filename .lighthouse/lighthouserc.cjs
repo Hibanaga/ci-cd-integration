@@ -15,13 +15,12 @@ if (FORM_FACTOR === 'desktop') {
 module.exports = {
   ci: {
     collect: {
-      numberOfRuns: 2,
+      numberOfRuns: 1,
       settings,
       chromeFlags: '--no-sandbox --disable-gpu',
     },
     assert: {
       assertions: {
-
         'categories:performance':     ['error', { minScore: 0.70 }],
         'categories:accessibility':   ['error', { minScore: 0.80 }],
         'categories:best-practices':  ['error', { minScore: 0.80 }],
@@ -33,16 +32,19 @@ module.exports = {
         'cumulative-layout-shift':    ['error', { maxNumericValue: 0.10, aggregationMethod: 'median' }],
         'speed-index':                ['error', { maxNumericValue: 4300, aggregationMethod: 'median' }],
 
+        'performance-budget':         'error',
+
         'unused-javascript':          'error',
         'unused-css-rules':           'error',
         'legacy-javascript':          'error',
         'render-blocking-resources':  'error',
         'offscreen-images':           'error',
         'uses-responsive-images':     'error',
-
-        'resource-summary':           'error',
         'uses-long-cache-ttl':        'error',
         'no-document-write':          'error',
+
+        'lighthouse-run-warnings': 'error',
+        'runtime-error': 'error',
       },
       budgetsFile: './.lighthouse/budget.json',
     },
