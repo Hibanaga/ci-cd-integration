@@ -15,33 +15,34 @@ if (FORM_FACTOR === 'desktop') {
 module.exports = {
   ci: {
     collect: {
-      numberOfRuns: 3,
+      numberOfRuns: 2,
       settings,
       chromeFlags: '--no-sandbox --disable-gpu',
     },
     assert: {
       assertions: {
-        "categories:performance": ["error", { "minScore": 0.50 }],
-        "categories:accessibility": ["error", { "minScore": 0.50 }],
-        "categories:best-practices": ["error", { "minScore": 0.50 }],
-        "categories:seo": ["error", { "minScore": 0.50 }],
 
-        "first-contentful-paint": ["warn", { "maxNumericValue": 8000, "aggregationMethod": "median" }],
-        "largest-contentful-paint": ["warn", { "maxNumericValue": 4000, "aggregationMethod": "median" }],
-        "total-blocking-time": ["warn", { "maxNumericValue": 900, "aggregationMethod": "median" }],
-        "cumulative-layout-shift": ["warn", { "maxNumericValue": 0.2, "aggregationMethod": "median" }],
-        "speed-index": ["warn", { "maxNumericValue": 8000, "aggregationMethod": "median" }],
+        'categories:performance':     ['error', { minScore: 0.70 }],
+        'categories:accessibility':   ['error', { minScore: 0.80 }],
+        'categories:best-practices':  ['error', { minScore: 0.80 }],
+        'categories:seo':             ['error', { minScore: 0.85 }],
 
-        "unused-javascript": "error",
-        "unused-css-rules": "error",
-        "legacy-javascript": "error",
-        "render-blocking-resources": "error",
-        "offscreen-images": "error",
-        "uses-responsive-images": "error",
+        'first-contentful-paint':     ['error', { maxNumericValue: 2500, aggregationMethod: 'median' }],
+        'largest-contentful-paint':   ['error', { maxNumericValue: 4000, aggregationMethod: 'median' }],
+        'total-blocking-time':        ['error', { maxNumericValue: 300,  aggregationMethod: 'median' }],
+        'cumulative-layout-shift':    ['error', { maxNumericValue: 0.10, aggregationMethod: 'median' }],
+        'speed-index':                ['error', { maxNumericValue: 4300, aggregationMethod: 'median' }],
 
-        "resource-summary": "error",
-        "uses-long-cache-ttl": "error",
-        "no-document-write": "error"
+        'unused-javascript':          'error',
+        'unused-css-rules':           'error',
+        'legacy-javascript':          'error',
+        'render-blocking-resources':  'error',
+        'offscreen-images':           'error',
+        'uses-responsive-images':     'error',
+
+        'resource-summary':           'error',
+        'uses-long-cache-ttl':        'error',
+        'no-document-write':          'error',
       },
       budgetsFile: './.lighthouse/budget.json',
     },

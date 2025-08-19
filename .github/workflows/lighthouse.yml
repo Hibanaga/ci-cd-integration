@@ -28,7 +28,7 @@ jobs:
           LHCI_FORM_FACTOR: ${{ matrix.form_factor }}
         with:
           urls: ${{ matrix.url }}
-          runs: 1
+          runs: 2
           budgetPath: ./.lighthouse/budget.json
           configPath: ./.lighthouse/lighthouserc.cjs
           uploadArtifacts: true
