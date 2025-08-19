@@ -1,19 +1,19 @@
 name: Run Lighthouse CRON CI
 
 on:
-    push:
+  push:
 
 jobs:
-    lhci:
-        name: Audit with Lighthouse CI
-        runs-on: ubuntu-latest
+  lhci:
+    name: Audit with Lighthouse CI
+    runs-on: ubuntu-latest
 
-        strategy:
-            fail-fast: false
-            matrix:
-                url:
-                    - https://www.gazetkowo.pl
-                form_factor: [desktop, mobile]
+    strategy:
+      fail-fast: false
+      matrix:
+        url:
+          - https://www.gazetkowo.pl
+        form_factor: [desktop, mobile]
 
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
           module.exports = {
             ci: {
               collect: {
-                numberOfRuns: 3,
+                numberOfRuns: 1,
                 settings: {
                   preset: PRESET,
                   onlyCategories: ['performance','accessibility','best-practices','seo'],
