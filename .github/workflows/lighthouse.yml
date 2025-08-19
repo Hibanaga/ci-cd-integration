@@ -33,3 +33,4 @@ jobs:
           configPath: ./.lighthouse/lighthouserc.cjs
           uploadArtifacts: true
           temporaryPublicStorage: false
+          artifactName: lighthouse-${{ matrix.form_factor }}-${{ github.run_id }}-${{ github.run_attempt }}

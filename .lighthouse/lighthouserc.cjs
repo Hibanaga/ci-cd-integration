@@ -4,7 +4,7 @@ const FORM_FACTOR = process.env.LHCI_FORM_FACTOR || 'mobile'; // 'mobile' | 'des
 
 const settings = {
   onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
-  emulatedFormFactor: FORM_FACTOR,     // works for both mobile/desktop
+  emulatedFormFactor: FORM_FACTOR,
   disableStorageReset: false,
 };
 
