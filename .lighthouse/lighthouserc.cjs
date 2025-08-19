@@ -1,18 +1,22 @@
+// .lighthouse/lighthouserc.cjs
 /** @type {import('@lhci/cli').LHCIConfig} */
-const FORM_FACTOR = process.env.LHCI_FORM_FACTOR || 'mobile';
+const FORM_FACTOR = process.env.LHCI_FORM_FACTOR || 'mobile'; // 'mobile' | 'desktop'
+
+const settings = {
+  onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
+  emulatedFormFactor: FORM_FACTOR,     // works for both mobile/desktop
+  disableStorageReset: false,
+};
+
+if (FORM_FACTOR === 'desktop') {
+  settings.preset = 'desktop';
+}
 
 module.exports = {
   ci: {
     collect: {
       numberOfRuns: 1,
-      settings: {
-        preset: FORM_FACTOR,
-        emulatedFormFactor: FORM_FACTOR,
-        onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
-        disableStorageReset: false,
-        // Optional: set language to reduce consent/geo variants
-        // extraHeaders: { 'Accept-Language': 'pl-PL,pl;q=0.9' },
-      },
+      settings,
       chromeFlags: '--no-sandbox --disable-gpu',
     },
     assert: {
