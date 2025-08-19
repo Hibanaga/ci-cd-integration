@@ -13,122 +13,19 @@ jobs:
       matrix:
         url:
           - https://www.gazetkowo.pl
+        form_factor: [desktop, mobile]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Audit URLs using Lighthouse
-        id: lhci
         uses: treosh/lighthouse-ci-action@v12
-        continue-on-error: true
+        env:
+          LHCI_FORM_FACTOR: ${{ matrix.form_factor }}
         with:
           urls: ${{ matrix.url }}
           runs: 1
           budgetPath: ./.lighthouse/budget.json
-          configPath: ./.lighthouse/lighthouserc.json
+          configPath: ./.lighthouse/lighthouserc.cjs
           uploadArtifacts: true
           temporaryPublicStorage: false
-          artifactName: lighthouse-results
-
-      - name: Ensure jq is installed
-        if: always()
-        run: |
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y jq
-          fi
-
-      - name: Summarize Lighthouse results (Markdown + CSV)
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          REPORT_DIR=".lighthouseci"
-          if [ ! -d "$REPORT_DIR" ]; then
-            REPORT_DIR="$(pwd)"
-          fi
-
-          # Find JSON reports
-          mapfile -t REPORTS < <(ls "${REPORT_DIR}"/*.report.json 2>/dev/null || true)
-          if [ ${#REPORTS[@]} -eq 0 ]; then
-            mapfile -t REPORTS < <(ls "${REPORT_DIR}"/*.lhr.json 2>/dev/null || true)
-          fi
-
-          if [ ${#REPORTS[@]} -eq 0 ]; then
-            echo "No Lighthouse JSON reports found in ${REPORT_DIR}" >&2
-            # still write a short note to summary
-            {
-              echo "### Lighthouse summary"
-              echo ""
-              echo "_No JSON reports found. Check LHCI action logs/artifact._"
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          MD_HEADER="| URL | Perf | A11y | Best-Practices | SEO | FCP (ms) | LCP (ms) | TBT (ms) | CLS | Speed Index (ms) | Interactive (ms) |"
-          MD_SEP="|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"
-          CSV_HEADER="url,score_performance,score_accessibility,score_best_practices,score_seo,fcp_ms,lcp_ms,tbt_ms,cls,speed_index_ms,interactive_ms"
-
-          {
-            echo "### Lighthouse summary"
-            echo ""
-            echo "$MD_HEADER"
-            echo "$MD_SEP"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-          echo "$CSV_HEADER" > lhci_table.csv
-
-          for f in "${REPORTS[@]}"; do
-            url=$(jq -r '.finalDisplayedUrl // .finalUrl // .requestedUrl' "$f")
-
-            perf=$(jq '(.categories.performance.score // null) * 100 | if .==null then null else round end' "$f")
-            a11y=$(jq '(.categories.accessibility.score // null) * 100 | if .==null then null else round end' "$f")
-            bp=$(jq '(.categories["best-practices"].score // null) * 100 | if .==null then null else round end' "$f")
-            seo=$(jq '(.categories.seo.score // null) * 100 | if .==null then null else round end' "$f")
-
-            fcp=$(jq '."audits"."first-contentful-paint".numericValue // null | if .==null then null else round end' "$f")
-            lcp=$(jq '."audits"."largest-contentful-paint".numericValue // null | if .==null then null else round end' "$f")
-            tbt=$(jq '."audits"."total-blocking-time".numericValue // null | if .==null then null else round end' "$f")
-            cls=$(jq -r '."audits"."cumulative-layout-shift".numericValue // ""' "$f")
-            si=$(jq '."audits"."speed-index".numericValue // null | if .==null then null else round end' "$f")
-            tti=$(jq '."audits"."interactive".numericValue // null | if .==null then null else round end' "$f")
-
-            nn() { if [ "$1" = "null" ] || [ -z "${1}" ]; then echo "n/a"; else echo "$1"; fi; }
-
-            echo "| ${url} | $(nn "$perf") | $(nn "$a11y") | $(nn "$bp") | $(nn "$seo") | $(nn "$fcp") | $(nn "$lcp") | $(nn "$tbt") | $(nn "$cls") | $(nn "$si") | $(nn "$tti") |" >> "$GITHUB_STEP_SUMMARY"
-
-            printf '"%s",%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
-              "$url" \
-              "${perf:-}" "${a11y:-}" "${bp:-}" "${seo:-}" \
-              "${fcp:-}" "${lcp:-}" "${tbt:-}" "${cls:-}" "${si:-}" "${tti:-}" \
-              >> lhci_table.csv
-          done
-
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "_CSV and raw reports are attached as artifacts._" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload parsed CSV
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lhci-table
-          path: lhci_table.csv
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Upload Lighthouse reports directory
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lighthouse-reports-dir
-          path: .lighthouseci
-          include-hidden-files: true
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Fail if LHCI assertions failed
-        if: steps.lhci.outcome == 'failure'
-        run: |
-          echo "LHCI assertions failed; failing job after summary/artifacts."
-          exit 1
