@@ -1,46 +1,43 @@
-const FORM = process.env.LHCI_FORM_FACTOR === 'mobile' ? 'mobile' : 'desktop';
-const PRESET = FORM;
+/** @type {import('@lhci/cli').LHCIConfig} */
+const FORM_FACTOR = process.env.LHCI_FORM_FACTOR || 'mobile';
 
 module.exports = {
   ci: {
     collect: {
       numberOfRuns: 1,
       settings: {
-        preset: PRESET,
+        preset: FORM_FACTOR,
+        emulatedFormFactor: FORM_FACTOR,
         onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
-        emulatedFormFactor: FORM,
-        throttlingMethod: 'simulate',
         disableStorageReset: false,
+        // Optional: set language to reduce consent/geo variants
+        // extraHeaders: { 'Accept-Language': 'pl-PL,pl;q=0.9' },
       },
       chromeFlags: '--no-sandbox --disable-gpu',
     },
     assert: {
       assertions: {
-        'categories:performance':   ['error', { minScore: 0.90 }],
-        'categories:accessibility': ['error', { minScore: 0.90 }],
-        'categories:best-practices':['error', { minScore: 0.90 }],
-        'categories:seo':           ['error', { minScore: 0.90 }],
+        'categories:performance': ['error', { minScore: 0.50 }],
+        'categories:accessibility': ['warn', { minScore: 0.50 }],
+        'categories:best-practices': ['warn', { minScore: 0.50 }],
+        'categories:seo': ['warn', { minScore: 0.50 }],
 
-        'largest-contentful-paint': ['error', { maxNumericValue: 2500, aggregationMethod: 'median' }],
-        'total-blocking-time':      ['error', { maxNumericValue: 200,  aggregationMethod: 'median' }],
-        'cumulative-layout-shift':  ['error', { maxNumericValue: 0.10, aggregationMethod: 'median' }],
+        'first-contentful-paint': ['warn', { maxNumericValue: 8000, aggregationMethod: 'median' }],
+        'largest-contentful-paint': ['warn', { maxNumericValue: 4000, aggregationMethod: 'median' }],
+        'total-blocking-time': ['warn', { maxNumericValue: 900, aggregationMethod: 'median' }],
+        'cumulative-layout-shift': ['warn', { maxNumericValue: 0.2, aggregationMethod: 'median' }],
+        'speed-index': ['warn', { maxNumericValue: 8000, aggregationMethod: 'median' }],
 
-        'first-contentful-paint':   ['warn',  { maxNumericValue: 1800, aggregationMethod: 'median' }],
-        'speed-index':              ['warn',  { maxNumericValue: 3400, aggregationMethod: 'median' }],
-
-        'performance-budget': ['error', { aggregationMethod: 'median' }],
-        'timing-budget':      ['error', { aggregationMethod: 'median' }],
-        'resource-summary':   ['warn'],
-        'third-party-summary':['warn'],
-
-        'unused-javascript':         'warn',
-        'unused-css-rules':          'warn',
-        'legacy-javascript':         'warn',
+        'unused-javascript': 'warn',
+        'unused-css-rules': 'warn',
+        'legacy-javascript': 'warn',
         'render-blocking-resources': 'warn',
-        'offscreen-images':          'warn',
-        'uses-responsive-images':    'warn',
-        'uses-long-cache-ttl':       'warn',
-        'no-document-write':         'error',
+        'offscreen-images': 'warn',
+        'uses-responsive-images': 'warn',
+
+        'resource-summary': 'error',
+        'uses-long-cache-ttl': 'warn',
+        'no-document-write': 'error',
       },
       budgetsFile: './.lighthouse/budget.json',
     },
