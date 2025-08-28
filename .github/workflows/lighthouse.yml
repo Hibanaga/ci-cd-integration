@@ -1,10 +1,10 @@
-name: Run Lighthouse CI
+name: Run Lighthouse CRON CI
 
 on:
   push:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{github.workflow}}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Audit URLs using Lighthouse CI
+      - name: Audit URLs using Lighthouse
         uses: treosh/lighthouse-ci-action@v12
         env:
           LHCI_FORM_FACTOR: ${{ matrix.form_factor }}
@@ -30,8 +30,8 @@ jobs:
         with:
           urls: ${{ matrix.url }}
           runs: 1
-          configPath: ./.lighthouse/lighthouserc.cjs
           budgetPath: ./.lighthouse/budget.json
+          configPath: ./.lighthouse/lighthouserc.cjs
           uploadArtifacts: true
           temporaryPublicStorage: false
           artifactName: lighthouse-${{ matrix.form_factor }}-${{ github.run_id }}-${{ github.run_attempt }}
