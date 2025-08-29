@@ -1,7 +1,10 @@
 {
   "ci": {
     "collect": {
-      "url": ["https://www.gazetkowo.pl"],
+      "url": [
+        "https://www.gazetkowo.pl",
+        "https://www.gazetkowo.pl/sieci-handlowe"
+      ],
       "numberOfRuns": 1,
       "startServerCommand": "",
       "settings": {

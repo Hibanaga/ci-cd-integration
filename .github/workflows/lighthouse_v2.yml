@@ -40,7 +40,7 @@ jobs:
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
 
-      - name: Run Lighthouse CI (collect + assert + upload) — ${{ matrix.target }}
+      - name: Run Lighthouse CI (autorun) — ${{ matrix.target }}
         continue-on-error: true
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
