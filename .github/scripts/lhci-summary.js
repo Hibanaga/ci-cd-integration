@@ -88,7 +88,7 @@ for (const [urlKey, list] of byUrl.entries()) {
   md += '| Level | Metric | Expected | Actual |\n';
   md += '|:-----:|:-------|---------:|------:|\n';
   for (const r of list) {
-    const metric = shortAuditName(r?.auditProperty ? `${r.auditId}:${r?.auditProperty}` : r.auditId, r.name);
+    const metric = shortAuditName(r.auditId, r.name, r.auditProperty);
     const expected = r.expected ?? '';
     const actual = Array.isArray(r.values) ? r.values[0] : (r.actual ?? r.value ?? r.score ?? '');
     md += `| ${levelIcon(r.level)} ${r.level || ''} | \`${metric}\` | ${round2(expected)} | ${round2(actual)} |\n`;
