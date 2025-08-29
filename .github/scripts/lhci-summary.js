@@ -97,7 +97,7 @@ md += '|:-----:|:------|---------:|------:|----:|:--------:|:----|\n';
 
 for (const r of enriched) {
   const url = r.url || r.entity?.url || '';
-  const metric = shortAuditName(r?.auditProperty || r.auditId, r.name);
+  const metric = shortAuditName(r?.auditProperty ? `${r.auditId}:${r?.auditProperty}` : r.auditId, r.name);
   const expected = r.expected ?? '';
   const actual = Array.isArray(r.values) ? r.values[0] : (r.actual ?? r.value ?? r.score ?? '');
   const op = operatorText(r.operator);

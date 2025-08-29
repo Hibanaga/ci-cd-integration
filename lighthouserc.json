@@ -2,9 +2,10 @@
   "ci": {
     "collect": {
       "url": [
-        "https://www.gazetkowo.pl"
+        "https://www.gazetkowo.pl",
+        "https://www.gazetkowo.pl/sieci-handlowe/biedronka"
       ],
-      "numberOfRuns": 2,
+      "numberOfRuns": 1,
       "startServerCommand": "",
       "settings": {
         "chromeFlags": "--headless --no-sandbox --disable-gpu --no-zygote"
