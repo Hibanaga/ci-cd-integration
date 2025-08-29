@@ -22,14 +22,14 @@ function deltaInfo(r) {
   );
   if (!Number.isFinite(exp) || !Number.isFinite(act)) return {delta: 0, rel: 0};
   if (op === '<=' || op === '≤') {
-    const d = act - exp;           // positive => worse
+    const d = act - exp;
     const rel = exp !== 0 ? d / exp : 0;
     return {delta: d, rel};
   }
   if (op === '>=' || op === '≥') {
-    const d = exp - act;           // negative => worse
-    const rel = exp !== 0 ? -d / exp : 0; // invert sign so positive=better
-    return {delta: -d, rel};       // normalize: positive => worse
+    const d = exp - act;
+    const rel = exp !== 0 ? -d / exp : 0;
+    return {delta: -d, rel};
   }
   return {delta: 0, rel: 0};
 }
@@ -72,7 +72,6 @@ if (!Array.isArray(results) || results.length === 0) {
   process.exit(0);
 }
 
-// Only failures/warnings
 const failing = results.filter(r => r?.passed === false || r?.status === 'fail');
 
 if (failing.length === 0) {
@@ -81,7 +80,6 @@ if (failing.length === 0) {
   process.exit(0);
 }
 
-// Enrich with deltas and sort worst-first by absolute delta then level
 const enriched = failing.map(r => ({...r, _d: deltaInfo(r)}));
 enriched.sort((a, b) => {
   const da = Math.abs(a._d.delta);
@@ -92,10 +90,8 @@ enriched.sort((a, b) => {
   return lb - la;
 });
 
-// Top summary (compact)
 md += `Found **${enriched.length}** validation issue(s). Sorted by severity and gap to threshold.\n\n`;
 
-// Table
 md += '| Level | Metric | Expected | Actual | Gap | Operator | URL |\n';
 md += '|:-----:|:------|---------:|------:|----:|:--------:|:----|\n';
 

@@ -4,7 +4,7 @@
       "url": [
         "https://www.gazetkowo.pl"
       ],
-      "numberOfRuns": 1,
+      "numberOfRuns": 2,
       "startServerCommand": "",
       "settings": {
         "chromeFlags": "--headless --no-sandbox --disable-gpu --no-zygote"
