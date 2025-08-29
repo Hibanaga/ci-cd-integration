@@ -51,44 +51,53 @@ jobs:
         run: |
           lhci assert --config=lighthouserc.json
 
-      # NEW: write failing assertions to the job summary
       - name: Summarize assertions → Job Summary — ${{ matrix.target }}
         if: always()
         env:
           TARGET: ${{ matrix.target }}
-          SUMMARY_FILE: ${{ github.step_summary }}
         run: |
           ASSERT_FILE=".lighthouseci/assertion-results.json"
-          if [ ! -f "$ASSERT_FILE" ]; then
-            {
-              echo "### Lighthouse CI Assertions — ${TARGET}"
-              echo ""
-              echo "_No assertion results file found at \`.lighthouseci/assertion-results.json\`._"
-            } >> "$SUMMARY_FILE"
-            exit 0
+
+          # Debug: show whether file exists and its size (helps detect the "empty array" case)
+          if [ -f "$ASSERT_FILE" ]; then
+            echo "assertion-results.json present, size: $(wc -c < "$ASSERT_FILE") bytes"
+          else
+            echo "assertion-results.json NOT found at $ASSERT_FILE"
           fi
 
           node <<'NODE'
           const fs = require('fs');
-          const path = process.env.ASSERT_FILE || '.lighthouseci/assertion-results.json';
-          const summaryPath = process.env.SUMMARY_FILE;
+          const path = '.lighthouseci/assertion-results.json';
           const target = process.env.TARGET || 'unknown';
+          const summaryPath = process.env.GITHUB_STEP_SUMMARY; // <- write directly to the official summary file
 
-          /** Robust read */
-          let results = [];
-          try {
-            results = JSON.parse(fs.readFileSync(path, 'utf8')) || [];
-          } catch (e) {
-            fs.appendFileSync(summaryPath, `### Lighthouse CI Assertions — ${target}\n\n_Failed to parse \`${path}\`:_ ${String(e)}\n`);
+          // Start section header regardless of failures (so you always see something in the Summary)
+          let md = `### Lighthouse CI Assertions — ${target}\n\n`;
+
+          if (!fs.existsSync(path)) {
+            md += "_No assertion results file found at `.lighthouseci/assertion-results.json`._\n";
+            fs.appendFileSync(summaryPath, md);
             process.exit(0);
           }
 
-          // Consider entries failing if `passed === false` or `status === 'fail'`
-          const failing = results.filter(r =>
-            r?.passed === false || r?.status === 'fail'
-          );
+          let results;
+          try {
+            results = JSON.parse(fs.readFileSync(path, 'utf8'));
+          } catch (e) {
+            md += `_Failed to parse \`${path}\`:_ ${String(e)}\n`;
+            fs.appendFileSync(summaryPath, md);
+            process.exit(0);
+          }
 
-          let md = `### Lighthouse CI Assertions — ${target}\n\n`;
+          // Some LHCI versions can produce an empty array; handle it explicitly.
+          if (!Array.isArray(results) || results.length === 0) {
+            md += "_Assertion results file is empty._\n";
+            fs.appendFileSync(summaryPath, md);
+            process.exit(0);
+          }
+
+          const failing = results.filter(r => r?.passed === false || r?.status === 'fail');
+
           if (failing.length === 0) {
             md += "No validation issues. ✅\n";
           } else {
@@ -98,16 +107,18 @@ jobs:
             for (const r of failing) {
               const url = r.url || (r.entity && r.entity.url) || "";
               const audit = r.auditId || r.name || "";
-              const expected = (r.expected !== undefined ? String(r.expected) : "").replace(/\|/g, "\\|");
-              const actual = Array.isArray(r.values) ? r.values.join(", ") :
-                             (r.actual !== undefined ? String(r.actual) : "");
+              const expected = r.expected !== undefined ? String(r.expected).replace(/\|/g, "\\|") : "";
+              const actual = Array.isArray(r.values) ? r.values.join(", ")
+                            : (r.actual !== undefined ? String(r.actual) : "");
               const operator = r.operator || "";
               const level = r.level || "";
               md += `| ${url} | ${audit} | ${expected} | ${actual} | ${operator} | ${level} |\n`;
             }
             md += "\n";
           }
+
           fs.appendFileSync(summaryPath, md);
+          console.log("Wrote Lighthouse assertion summary.");
           NODE
 
       - name: Prepare output dir — ${{ matrix.target }}
