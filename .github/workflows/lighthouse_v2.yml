@@ -40,15 +40,6 @@ jobs:
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
 
-#      - name: Run Lighthouse CI (autorun) — ${{ matrix.target }}
-#        continue-on-error: true
-#        env:
-#          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-#        run: |
-#          echo "Chrome path: ${CHROME_PATH:-$(which google-chrome || true)}"
-#          lhci autorun --config=lighthouserc.json ${{ matrix.cli_args }}
-
-      # 1) Collect
       - name: Collect — ${{ matrix.target }}
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
@@ -60,21 +51,17 @@ jobs:
         run: |
           lhci assert --config=lighthouserc.json
 
-      # 2) Prepare single output dir and copy raw results into it
       - name: Prepare output dir — ${{ matrix.target }}
         if: always()
         run: |
           rm -rf "${{ matrix.out_dir }}"
-#          mkdir -p "${{ matrix.out_dir }}/raw"
 
-      # 3) Generate HTML reports into the SAME dir
       - name: Upload (filesystem) — ${{ matrix.target }}
         if: always()
         run: |
           lhci upload --config=lighthouserc.json --target=filesystem --outputDir="${{ matrix.out_dir }}"
           ls -la "${{ matrix.out_dir }}" || true
 
-      # 4) Single artifact per target
       - name: Upload ${{ matrix.target }} artifact
         if: always()
         uses: actions/upload-artifact@v4
