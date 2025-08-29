@@ -47,20 +47,20 @@ jobs:
         run: |
           lhci collect --config=lighthouserc.json ${{ matrix.collect_args }}
 
-      # 2) Prepare single output dir and copy raw results into it
-      - name: Prepare output dir — ${{ matrix.target }}
-        if: always()
-        run: |
-          rm -rf "${{ matrix.out_dir }}"
-          mkdir -p "${{ matrix.out_dir }}/raw"
-          cp -a .lighthouseci/. "${{ matrix.out_dir }}/raw/" || true
+#      # 2) Prepare single output dir and copy raw results into it
+#      - name: Prepare output dir — ${{ matrix.target }}
+#        if: always()
+#        run: |
+#          rm -rf "${{ matrix.out_dir }}"
+#          mkdir -p "${{ matrix.out_dir }}/raw"
+#          cp -a .lighthouseci/. "${{ matrix.out_dir }}/raw/" || true
 
-      # 3) Generate HTML reports into the SAME dir
-      - name: Upload (filesystem) — ${{ matrix.target }}
-        if: always()
-        run: |
-          lhci upload --config=lighthouserc.json --target=filesystem --outputDir="${{ matrix.out_dir }}"
-          ls -la "${{ matrix.out_dir }}" || true
+#      # 3) Generate HTML reports into the SAME dir
+#      - name: Upload (filesystem) — ${{ matrix.target }}
+#        if: always()
+#        run: |
+#          lhci upload --config=lighthouserc.json --target=filesystem --outputDir="${{ matrix.out_dir }}"
+#          ls -la "${{ matrix.out_dir }}" || true
 
       # 4) Single artifact per target
       - name: Upload ${{ matrix.target }} artifact
