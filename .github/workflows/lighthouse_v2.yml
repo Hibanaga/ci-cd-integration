@@ -6,13 +6,18 @@ on:
       - 'lighthouse_v2'
 
 concurrency:
-  group: ${{github.workflow}}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   lhci:
-    name: Audit with Lighthouse CI
+    name: Audit with Lighthouse CI (${{ matrix.preset }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [desktop, mobile]
 
     steps:
       - name: Checkout repo
@@ -24,54 +29,26 @@ jobs:
           node-version: '18.20.x'
 
       - name: Install Chrome
+        id: setup-chrome
         uses: browser-actions/setup-chrome@v1
 
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
-
-#      # If the config file is committed, you can drop this step.
-#      - name: Write lighthouserc.json
-#        run: |
-#          cat > lighthouserc.json <<'JSON'
-#          {
-#            "ci": {
-#              "collect": {
-#                "url": ["https://www.gazetkowo.pl"],
-#                "numberOfRuns": 1,
-#                "startServerCommand": "",
-#                "settings": {
-#                  "preset": "desktop",
-#                  "chromeFlags": "--headless --no-sandbox"
-#                }
-#              },
-#              "assert": {
-#                "assertions": {
-#                  "categories:performance": ["error", {"minScore": 0.80}],
-#                  "categories:accessibility": ["warn", {"minScore": 0.90}],
-#                  "categories:seo": ["warn", {"minScore": 0.90}],
-#                  "categories:best-practices": ["warn", {"minScore": 0.90}]
-#                }
-#              },
-#              "upload": {
-#                "target": "filesystem",
-#                "outputDir": "lhci-reports"
-#              }
-#            }
-#          }
-#          JSON
 
       - name: Run Lighthouse CI (collect + assert + upload)
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: |
           echo "Chrome path: ${CHROME_PATH:-$(which google-chrome || true)}"
-          lhci autorun --config=lighthouserc.json
+          # Override preset and output directory per matrix entry.
+          lhci autorun \
+            --config=lighthouserc.json \
+            --collect.settings.preset=${{ matrix.preset }} \
+            --upload.outputDir=lhci-reports-${{ matrix.preset }}
 
-      - name: Upload reports
+      - name: Upload ${{ matrix.preset }} reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lighthouse-reports
-          path: |
-            lhci-reports/**
-            .lighthouseci/**
+          name: lighthouse-reports-${{ matrix.preset }}
+          path: lhci-reports-${{ matrix.preset }}/**
