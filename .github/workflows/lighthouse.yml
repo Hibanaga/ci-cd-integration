@@ -2,6 +2,8 @@ name: Run Lighthouse CRON CI
 
 on:
   push:
+    branches:
+      - 'lighthouse'
 
 concurrency:
   group: ${{github.workflow}}-${{ github.ref }}
