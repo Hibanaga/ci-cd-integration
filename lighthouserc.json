@@ -7,7 +7,7 @@
       "numberOfRuns": 1,
       "startServerCommand": "",
       "settings": {
-        "chromeFlags": "--no-sandbox --disable-gpu --no-zygote"
+        "chromeFlags": "--no-sandbox --no-zygote"
       }
     },
     "assert": {
