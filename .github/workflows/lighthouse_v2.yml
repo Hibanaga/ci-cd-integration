@@ -11,13 +11,21 @@ concurrency:
 
 jobs:
   lhci:
-    name: Audit with Lighthouse CI (${{ matrix.preset }})
+    name: Audit with Lighthouse CI (${{ matrix.target }})
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        preset: [desktop, mobile]
+        include:
+          - target: desktop
+            # desktop run: force desktop preset
+            cli_args: "--collect.settings.preset=desktop --upload.outputDir=lhci-reports-desktop"
+            artifact: lighthouse-reports-desktop
+          - target: mobile
+            # mobile run: use mobile form factor (no preset=mobile!)
+            cli_args: "--collect.settings.emulatedFormFactor=mobile --upload.outputDir=lhci-reports-mobile"
+            artifact: lighthouse-reports-mobile
 
     steps:
       - name: Checkout repo
@@ -35,20 +43,20 @@ jobs:
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
 
-      - name: Run Lighthouse CI (collect + assert + upload)
+      - name: Run Lighthouse CI (collect + assert + upload) — ${{ matrix.target }}
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: |
           echo "Chrome path: ${CHROME_PATH:-$(which google-chrome || true)}"
-          # Override preset and output directory per matrix entry.
           lhci autorun \
             --config=lighthouserc.json \
-            --collect.settings.preset=${{ matrix.preset }} \
-            --upload.outputDir=lhci-reports-${{ matrix.preset }}
+            ${{ matrix.cli_args }}
 
-      - name: Upload ${{ matrix.preset }} reports
+      - name: Upload ${{ matrix.target }} reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lighthouse-reports-${{ matrix.preset }}
-          path: lhci-reports-${{ matrix.preset }}/**
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}/**
+            .lighthouseci/**
