@@ -18,10 +18,10 @@ jobs:
       matrix:
         include:
           - target: desktop
-            collect_args: "--settings.preset=desktop"
+            collect_args: "--collect.settings.preset=desktop"
             out_dir: "lighthouse-desktop"
           - target: mobile
-            collect_args: "--settings.emulatedFormFactor=mobile"
+            collect_args: "--collect.settings.emulatedFormFactor=mobile"
             out_dir: "lighthouse-mobile"
 
     steps:
@@ -40,66 +40,40 @@ jobs:
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
 
-      - name: Append to Job Summary — ${{ matrix.target }}
-        if: always()
+      - name: Collect — ${{ matrix.target }}
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: |
-          {
-          echo "### Lighthouse ${{ matrix.target }} — Assertions";
-          echo;
-          echo '```';
-          if [ -f "${{ matrix.out_dir }}/assert.txt" ]; then
-           cat "${{ matrix.out_dir }}/assert.txt"
-          else
-           echo "No assertion output."
-          fi
-          echo '```';
-          echo;
-          echo "Artifact: \`${{ matrix.out_dir }}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
-#      - name: Build Slack payload — ${{ matrix.target }}
-#        if: always()
-#        env:
-#          OUT_DIR: ${{ matrix.out_dir }}
-#          TARGET: ${{ matrix.target }}
-#          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-#          BRANCH: ${{ github.ref_name }}
-#          SHA: ${{ github.sha }}
-#        run: |
-#          node <<'NODE'
-#            const fs = require('fs');
-#            const path = require('path');
-#            const OUT_DIR = process.env.OUT_DIR;
-#            const TARGET = process.env.TARGET;
-#            const RUN_URL = process.env.RUN_URL;
-#            const BRANCH = process.env.BRANCH;
-#            const SHA = process.env.SHA;
-#
-#            const assertTxtPath = path.join(OUT_DIR, 'assert.txt');
-#            const text = fs.existsSync(assertTxtPath) ? fs.readFileSync(assertTxtPath, 'utf8') : 'No assertion output.';
-#
-#            const header = `*Lighthouse ${TARGET}* on *${BRANCH}* (${SHA.substring(0,7)})\n<${RUN_URL}|View GitHub run>\n`;
-#            const payload = {
-#              text: header + '```' + text + '```'
-#            };
-#
-#            fs.writeFileSync(path.join(OUT_DIR, 'slack.json'), JSON.stringify(payload));
-#          NODE
+          lhci collect --config=lighthouserc.json ${{ matrix.collect_args }}
 
       - name: Assert — ${{ matrix.target }}
         continue-on-error: true
         run: |
-          lhci assert --config=lighthouserc.json
-
-      - name: Prepare output dir — ${{ matrix.target }}
-        if: always()
-        run: |
-          rm -rf "${{ matrix.out_dir }}"
+          mkdir -p "${{ matrix.out_dir }}"
+          lhci assert --config=lighthouserc.json | tee "${{ matrix.out_dir }}/assert.txt" || true
 
       - name: Upload (filesystem) — ${{ matrix.target }}
         if: always()
         run: |
           lhci upload --config=lighthouserc.json --target=filesystem --outputDir="${{ matrix.out_dir }}"
           ls -la "${{ matrix.out_dir }}" || true
+
+      - name: Append to Job Summary — ${{ matrix.target }}
+        if: always()
+        run: |
+          {
+            echo "### Lighthouse ${{ matrix.target }} — Assertions";
+            echo;
+            echo '```';
+            if [ -f "${{ matrix.out_dir }}/assert.txt" ]; then
+              cat "${{ matrix.out_dir }}/assert.txt"
+            else
+              echo "No assertion output."
+            fi
+            echo '```';
+            echo;
+            echo "Artifact: \`${{ matrix.out_dir }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload ${{ matrix.target }} artifact
         if: always()
