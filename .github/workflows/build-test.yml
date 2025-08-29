@@ -3,10 +3,6 @@ name: Build and Test
 on:
   push:
     branches: [staging]
-  pull_request:
-    types:
-      - opened
-      - ready_for_review
 
 concurrency:
   group: ${{github.workflow}}-${{ github.ref }}
