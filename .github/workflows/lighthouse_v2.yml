@@ -18,10 +18,10 @@ jobs:
       matrix:
         include:
           - target: desktop
-            collect_args: "--collect.settings.preset=desktop"
+            collect_args: "--settings.preset=desktop"
             out_dir: "lighthouse-desktop"
           - target: mobile
-            collect_args: "--collect.settings.emulatedFormFactor=mobile"
+            collect_args: "--settings.emulatedFormFactor=mobile"
             out_dir: "lighthouse-mobile"
 
     steps:
@@ -40,40 +40,38 @@ jobs:
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
 
-      - name: Collect — ${{ matrix.target }}
-        env:
-          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-        run: |
-          lhci collect --config=lighthouserc.json ${{ matrix.collect_args }}
+#      - name: Append to Job Summary — ${{ matrix.target }}
+#        if: always()
+#        run: |
+#          {
+#            echo "### Lighthouse ${{ matrix.target }} — Assertions";
+#            echo;
+#            echo '```';
+#            if [ -f "${{ matrix.out_dir }}/assert.txt" ]; then
+#             cat "${{ matrix.out_dir }}/assert.txt"
+#            else
+#             echo "No assertion output."
+#            fi
+#            echo '```';
+#            echo;
+#            echo "Artifact: \`${{ matrix.out_dir }}\`"
+#          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Assert — ${{ matrix.target }}
         continue-on-error: true
         run: |
-          mkdir -p "${{ matrix.out_dir }}"
-          lhci assert --config=lighthouserc.json | tee "${{ matrix.out_dir }}/assert.txt" || true
+          lhci assert --config=lighthouserc.json
+
+      - name: Prepare output dir — ${{ matrix.target }}
+        if: always()
+        run: |
+          rm -rf "${{ matrix.out_dir }}"
 
       - name: Upload (filesystem) — ${{ matrix.target }}
         if: always()
         run: |
           lhci upload --config=lighthouserc.json --target=filesystem --outputDir="${{ matrix.out_dir }}"
           ls -la "${{ matrix.out_dir }}" || true
-
-      - name: Append to Job Summary — ${{ matrix.target }}
-        if: always()
-        run: |
-          {
-            echo "### Lighthouse ${{ matrix.target }} — Assertions";
-            echo;
-            echo '```';
-            if [ -f "${{ matrix.out_dir }}/assert.txt" ]; then
-              cat "${{ matrix.out_dir }}/assert.txt"
-            else
-              echo "No assertion output."
-            fi
-            echo '```';
-            echo;
-            echo "Artifact: \`${{ matrix.out_dir }}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload ${{ matrix.target }} artifact
         if: always()
