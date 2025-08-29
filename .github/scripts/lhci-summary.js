@@ -14,39 +14,24 @@ function round2(v) {
   return (Math.round(Number(v) * 100) / 100).toString();
 }
 
-function deltaInfo(r) {
-  const op = r.operator || '';
-  const exp = Number(r.expected);
-  const act = Number(
-    Array.isArray(r.values) ? r.values[0] : (r.actual ?? r.value ?? r.score)
-  );
-  if (!Number.isFinite(exp) || !Number.isFinite(act)) return {delta: 0, rel: 0};
-  if (op === '<=' || op === '≤') {
-    const d = act - exp;
-    const rel = exp !== 0 ? d / exp : 0;
-    return {delta: d, rel};
-  }
-  if (op === '>=' || op === '≥') {
-    const d = exp - act;
-    const rel = exp !== 0 ? -d / exp : 0;
-    return {delta: -d, rel};
-  }
-  return {delta: 0, rel: 0};
-}
-
-function shortAuditName(id = '', name = '') {
+function shortAuditName(id = '', name = '', auditProperty = '') {
   const base = id || name || '';
-  return base.replace(/^categories\./, 'category/');
+  const cleaned = base.replace(/^categories\./, 'category/');
+  return auditProperty ? `${cleaned}:${auditProperty}` : cleaned;
 }
 
 function levelIcon(level) {
   return level === 'error' ? '🛑' : '⚠️';
 }
 
-function operatorText(op) {
-  if (op === '<=') return '≤';
-  if (op === '>=') return '≥';
-  return op || '';
+function compactUrl(u) {
+  try {
+    const x = new URL(u);
+    const path = x.pathname === '/' ? '/' : x.pathname.replace(/\/$/, '');
+    return `${x.hostname}${path}`;
+  } catch {
+    return u || '(no-url)';
+  }
 }
 
 let md = `### Lighthouse CI — ${TARGET}\n\n`;
@@ -73,39 +58,43 @@ if (!Array.isArray(results) || results.length === 0) {
 }
 
 const failing = results.filter(r => r?.passed === false || r?.status === 'fail');
-
 if (failing.length === 0) {
   md += 'No validation issues. ✅\n';
   fs.appendFileSync(SUMMARY, md);
   process.exit(0);
 }
 
-const enriched = failing.map(r => ({...r, _d: deltaInfo(r)}));
-enriched.sort((a, b) => {
-  const da = Math.abs(a._d.delta);
-  const db = Math.abs(b._d.delta);
-  if (db !== da) return db - da;
-  const la = a.level === 'error' ? 1 : 0;
-  const lb = b.level === 'error' ? 1 : 0;
-  return lb - la;
-});
-
-md += `Found **${enriched.length}** validation issue(s). Sorted by severity and gap to threshold.\n\n`;
-
-md += '| Level | Metric | Expected | Actual | Gap | Operator | URL |\n';
-md += '|:-----:|:------|---------:|------:|----:|:--------:|:----|\n';
-
-for (const r of enriched) {
+const byUrl = new Map();
+for (const r of failing) {
   const url = r.url || r.entity?.url || '';
-  const metric = shortAuditName(r?.auditProperty ? `${r.auditId}:${r?.auditProperty}` : r.auditId, r.name);
-  const expected = r.expected ?? '';
-  const actual = Array.isArray(r.values) ? r.values[0] : (r.actual ?? r.value ?? r.score ?? '');
-  const op = operatorText(r.operator);
-  const gap = round2(Math.abs(r._d.delta));
-  md += `| ${levelIcon(r.level)} ${r.level || ''} | \`${metric}\` | ${round2(expected)} | ${round2(actual)} | ${gap} | ${op} | ${url} |\n`;
+  const key = compactUrl(url);
+  if (!byUrl.has(key)) byUrl.set(key, []);
+  byUrl.get(key).push(r);
 }
 
-md += '\n';
+md += `Found **${failing.length}** validation issue(s).\n\n`;
+
+for (const [urlKey, list] of byUrl.entries()) {
+
+  list.sort((a, b) => {
+    const la = a.level === 'error' ? 1 : 0;
+    const lb = b.level === 'error' ? 1 : 0;
+    if (lb !== la) return lb - la;
+    const an = (a.auditId || a.name || '').localeCompare(b.auditId || b.name || '');
+    return an;
+  });
+
+  md += `#### ${urlKey}\n\n`;
+  md += '| Level | Metric | Expected | Actual |\n';
+  md += '|:-----:|:-------|---------:|------:|\n';
+  for (const r of list) {
+    const metric = shortAuditName(r?.auditProperty ? `${r.auditId}:${r?.auditProperty}` : r.auditId, r.name);
+    const expected = r.expected ?? '';
+    const actual = Array.isArray(r.values) ? r.values[0] : (r.actual ?? r.value ?? r.score ?? '');
+    md += `| ${levelIcon(r.level)} ${r.level || ''} | \`${metric}\` | ${round2(expected)} | ${round2(actual)} |\n`;
+  }
+  md += '\n';
+}
 
 md += '<details>\n<summary>Raw assertion items</summary>\n\n';
 md += '```json\n';
@@ -113,4 +102,4 @@ md += JSON.stringify(failing, null, 2);
 md += '\n```\n</details>\n\n';
 
 fs.appendFileSync(SUMMARY, md);
-console.log('Wrote Lighthouse assertion summary.');
+console.log('Wrote Lighthouse assertion summary (grouped by URL).');
