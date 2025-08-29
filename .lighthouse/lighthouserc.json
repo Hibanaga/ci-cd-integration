@@ -1,41 +1,32 @@
 {
-    "ci": {
-        "collect": {
-            "numberOfRuns": 1,
-            "name": "desktop",
-            "settings": {
-                "preset": "desktop",
-                "onlyCategories": ["performance", "accessibility", "best-practices", "seo"],
-                "emulatedFormFactor": "desktop",
-                "disableStorageReset": false
-            },
-            "chromeFlags": "--no-sandbox --disable-gpu"
-        },
-        "assert": {
-            "assertions": {
-                "categories:performance": ["error", { "minScore": 0.50 }],
-                "categories:accessibility": ["warn", { "minScore": 0.50 }],
-                "categories:best-practices": ["warn", { "minScore": 0.50 }],
-                "categories:seo": ["warn", { "minScore": 0.50 }],
-
-                "first-contentful-paint": ["warn", { "maxNumericValue": 8000, "aggregationMethod": "median" }],
-                "largest-contentful-paint": ["warn", { "maxNumericValue": 4000, "aggregationMethod": "median" }],
-                "total-blocking-time": ["warn", { "maxNumericValue": 900, "aggregationMethod": "median" }],
-                "cumulative-layout-shift": ["warn", { "maxNumericValue": 0.2, "aggregationMethod": "median" }],
-                "speed-index": ["warn", { "maxNumericValue": 8000, "aggregationMethod": "median" }],
-
-                "unused-javascript": "warn",
-                "unused-css-rules": "warn",
-                "legacy-javascript": "warn",
-                "render-blocking-resources": "warn",
-                "offscreen-images": "warn",
-                "uses-responsive-images": "warn",
-
-                "resource-summary": "error",
-                "uses-long-cache-ttl": "warn",
-                "no-document-write": "error"
-            },
-            "budgetsFile": "./.lighthouse/budget.json"
-        }
+  "ci": {
+    "collect": {
+      "url": ["https://www.gazetkowo.pl"],
+      "numberOfRuns": 1,
+      "startServerCommand": "",
+      "settings": {
+        "preset": "desktop",
+        "chromeFlags": "--headless --no-sandbox"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "lighthouse-run-warnings": "error",
+        "runtime-error": "error",
+        "categories:performance": ["error", { "minScore": 0.8 }],
+        "categories:accessibility": ["warn", { "minScore": 0.9 }],
+        "categories:seo": ["warn", { "minScore": 0.9 }],
+        "categories:best-practices": ["warn", { "minScore": 0.9 }],
+        "first-contentful-paint":   ["error", { "maxNumericValue": 2500, "aggregationMethod": "median" }],
+        "largest-contentful-paint": ["error", { "maxNumericValue": 4000, "aggregationMethod": "median" }],
+        "total-blocking-time":      ["error", { "maxNumericValue": 300,  "aggregationMethod": "median" }],
+        "cumulative-layout-shift":  ["error", { "maxNumericValue": 0.1,  "aggregationMethod": "median" }],
+        "speed-index":              ["error", { "maxNumericValue": 4300, "aggregationMethod": "median" }]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "lhci-reports"
     }
+  }
 }
