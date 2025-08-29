@@ -1,8 +1,3 @@
-// .github/scripts/lhci-summary.js
-// Input:   .lighthouseci/assertion-results.json
-// Output:  formatted markdown to $GITHUB_STEP_SUMMARY
-// Robust to schema differences; sorts worst-first; rounds numbers.
-
 const fs = require('fs');
 
 const ASSERT_PATH = '.lighthouseci/assertion-results.json';
@@ -106,7 +101,7 @@ md += '|:-----:|:------|---------:|------:|----:|:--------:|:----|\n';
 
 for (const r of enriched) {
   const url = r.url || r.entity?.url || '';
-  const metric = shortAuditName(r.auditId, r.name);
+  const metric = shortAuditName(r?.auditProperty || r.auditId, r.name);
   const expected = r.expected ?? '';
   const actual = Array.isArray(r.values) ? r.values[0] : (r.actual ?? r.value ?? r.score ?? '');
   const op = operatorText(r.operator);
