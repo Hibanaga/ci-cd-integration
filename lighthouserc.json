@@ -5,7 +5,7 @@
       "numberOfRuns": 1,
       "startServerCommand": "",
       "settings": {
-        "chromeFlags": "--headless --no-sandbox"
+        "chromeFlags": "--headless --no-sandbox --disable-gpu --no-zygote"
       }
     },
     "assert": {
