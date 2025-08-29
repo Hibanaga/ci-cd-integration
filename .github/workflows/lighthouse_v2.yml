@@ -27,14 +27,22 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v1
 
+      - name: Verify LHCI config exists
+        run: |
+          ls -la .github/.lighthouse || true
+          test -f .github/.lighthouse/lighthouserc.json || { echo "Config missing"; exit 1; }
+          echo "Config found:"
+          cat .github/.lighthouse/lighthouserc.json
+
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
 
       - name: Run Lighthouse CI (collect + assert + upload)
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+          GOOGLE_CHROME_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: |
-          echo "Chrome path: ${CHROME_PATH:-$(which google-chrome || true)}"
+          echo "Chrome path: ${CHROME_PATH}"
           lhci autorun --config=.github/.lighthouse/lighthouserc.json
 
       - name: Upload reports
