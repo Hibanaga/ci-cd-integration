@@ -40,13 +40,13 @@ jobs:
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
 
-      - name: Run Lighthouse CI (autorun) — ${{ matrix.target }}
-        continue-on-error: true
-        env:
-          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-        run: |
-          echo "Chrome path: ${CHROME_PATH:-$(which google-chrome || true)}"
-          lhci autorun --config=lighthouserc.json ${{ matrix.cli_args }}
+#      - name: Run Lighthouse CI (autorun) — ${{ matrix.target }}
+#        continue-on-error: true
+#        env:
+#          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+#        run: |
+#          echo "Chrome path: ${CHROME_PATH:-$(which google-chrome || true)}"
+#          lhci autorun --config=lighthouserc.json ${{ matrix.cli_args }}
 
       # 1) Collect
       - name: Collect — ${{ matrix.target }}
@@ -54,14 +54,18 @@ jobs:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: |
           lhci collect --config=lighthouserc.json ${{ matrix.collect_args }}
+          
+      - name: Assert — ${{ matrix.target }}
+        continue-on-error: true
+        run: |
+          lhci assert --config=lighthouserc.json
 
       # 2) Prepare single output dir and copy raw results into it
       - name: Prepare output dir — ${{ matrix.target }}
         if: always()
         run: |
           rm -rf "${{ matrix.out_dir }}"
-          mkdir -p "${{ matrix.out_dir }}/raw"
-#          cp -a .lighthouseci/. "${{ matrix.out_dir }}/raw/" || true
+#          mkdir -p "${{ matrix.out_dir }}/raw"
 
       # 3) Generate HTML reports into the SAME dir
       - name: Upload (filesystem) — ${{ matrix.target }}
