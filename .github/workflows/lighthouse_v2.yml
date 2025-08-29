@@ -40,22 +40,11 @@ jobs:
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
 
-#      - name: Append to Job Summary — ${{ matrix.target }}
-#        if: always()
-#        run: |
-#          {
-#            echo "### Lighthouse ${{ matrix.target }} — Assertions";
-#            echo;
-#            echo '```';
-#            if [ -f "${{ matrix.out_dir }}/assert.txt" ]; then
-#             cat "${{ matrix.out_dir }}/assert.txt"
-#            else
-#             echo "No assertion output."
-#            fi
-#            echo '```';
-#            echo;
-#            echo "Artifact: \`${{ matrix.out_dir }}\`"
-#          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Collect — ${{ matrix.target }}
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: |
+          lhci collect --config=lighthouserc.json ${{ matrix.collect_args }}
 
       - name: Assert — ${{ matrix.target }}
         continue-on-error: true
