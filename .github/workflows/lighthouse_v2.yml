@@ -40,12 +40,51 @@ jobs:
       - name: Install Lighthouse CI CLI
         run: npm i -g @lhci/cli
 
-      - name: Collect — ${{ matrix.target }}
-        env:
-          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+      - name: Append to Job Summary — ${{ matrix.target }}
+        if: always()
         run: |
-          lhci collect --config=lighthouserc.json ${{ matrix.collect_args }}
-          
+          {
+          echo "### Lighthouse ${{ matrix.target }} — Assertions";
+          echo;
+          echo '```';
+          if [ -f "${{ matrix.out_dir }}/assert.txt" ]; then
+           cat "${{ matrix.out_dir }}/assert.txt"
+          else
+           echo "No assertion output."
+          fi
+          echo '```';
+          echo;
+          echo "Artifact: \`${{ matrix.out_dir }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+#      - name: Build Slack payload — ${{ matrix.target }}
+#        if: always()
+#        env:
+#          OUT_DIR: ${{ matrix.out_dir }}
+#          TARGET: ${{ matrix.target }}
+#          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#          BRANCH: ${{ github.ref_name }}
+#          SHA: ${{ github.sha }}
+#        run: |
+#          node <<'NODE'
+#            const fs = require('fs');
+#            const path = require('path');
+#            const OUT_DIR = process.env.OUT_DIR;
+#            const TARGET = process.env.TARGET;
+#            const RUN_URL = process.env.RUN_URL;
+#            const BRANCH = process.env.BRANCH;
+#            const SHA = process.env.SHA;
+#
+#            const assertTxtPath = path.join(OUT_DIR, 'assert.txt');
+#            const text = fs.existsSync(assertTxtPath) ? fs.readFileSync(assertTxtPath, 'utf8') : 'No assertion output.';
+#
+#            const header = `*Lighthouse ${TARGET}* on *${BRANCH}* (${SHA.substring(0,7)})\n<${RUN_URL}|View GitHub run>\n`;
+#            const payload = {
+#              text: header + '```' + text + '```'
+#            };
+#
+#            fs.writeFileSync(path.join(OUT_DIR, 'slack.json'), JSON.stringify(payload));
+#          NODE
+
       - name: Assert — ${{ matrix.target }}
         continue-on-error: true
         run: |
